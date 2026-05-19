@@ -1,0 +1,7 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" fill="#172554"/>
+  <rect y="430" width="1200" height="370" fill="#064E3B"/>
+  <circle cx="290" cy="300" r="155" fill="#DBEAFE" fill-opacity="0.25"/>
+  <circle cx="810" cy="270" r="180" fill="#93C5FD" fill-opacity="0.18"/>
+  <text x="600" y="620" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" fill="#EFF6FF">Perth Dealer Showroom</text>
+</svg>

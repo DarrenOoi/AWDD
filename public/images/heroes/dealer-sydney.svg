@@ -1,0 +1,7 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" fill="#1F2937"/>
+  <rect y="430" width="1200" height="370" fill="#0B5A3D"/>
+  <circle cx="320" cy="290" r="160" fill="#E5E7EB" fill-opacity="0.25"/>
+  <circle cx="760" cy="250" r="180" fill="#D1D5DB" fill-opacity="0.2"/>
+  <text x="600" y="620" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" fill="#F9FAFB">Sydney Dealer Showroom</text>
+</svg>

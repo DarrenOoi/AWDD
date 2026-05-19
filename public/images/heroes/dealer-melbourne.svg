@@ -1,0 +1,7 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" fill="#111827"/>
+  <rect y="430" width="1200" height="370" fill="#14532D"/>
+  <circle cx="260" cy="280" r="150" fill="#D1D5DB" fill-opacity="0.25"/>
+  <circle cx="840" cy="280" r="190" fill="#9CA3AF" fill-opacity="0.2"/>
+  <text x="600" y="620" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" fill="#F3F4F6">Melbourne Dealer Showroom</text>
+</svg>

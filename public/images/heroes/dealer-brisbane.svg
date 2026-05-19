@@ -1,0 +1,7 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" fill="#0F172A"/>
+  <rect y="430" width="1200" height="370" fill="#166534"/>
+  <circle cx="300" cy="300" r="165" fill="#E2E8F0" fill-opacity="0.22"/>
+  <circle cx="860" cy="270" r="185" fill="#94A3B8" fill-opacity="0.23"/>
+  <text x="600" y="620" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" fill="#F8FAFC">Brisbane Dealer Showroom</text>
+</svg>
