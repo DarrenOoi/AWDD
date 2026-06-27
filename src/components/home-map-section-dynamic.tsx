@@ -1,6 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useInView } from "framer-motion";
+import { useRef } from "react";
 
 import type { Dealer } from "@/types/dealer";
 
@@ -21,5 +23,18 @@ type HomeMapSectionDynamicProps = {
 };
 
 export function HomeMapSectionDynamic({ dealers }: HomeMapSectionDynamicProps) {
-  return <HomeMapSection dealers={dealers} />;
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "200px 0px" });
+
+  return (
+    <div ref={ref} className="min-h-[12rem]">
+      {inView ? (
+        <HomeMapSection dealers={dealers} />
+      ) : (
+        <div className="rounded-3xl border border-dashed border-stone-300 bg-stone-50 p-12 text-center text-sm text-stone-500">
+          Loading map…
+        </div>
+      )}
+    </div>
+  );
 }

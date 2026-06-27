@@ -1,9 +1,8 @@
 "use client";
 
-import { useJsApiLoader } from "@react-google-maps/api";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const libraries: ("places")[] = ["places"];
+import { useGoogleMapsLoader } from "@/lib/google-maps-loader";
 
 export type SelectedPlace = {
   label: string;
@@ -47,21 +46,19 @@ function parsePlace(place: google.maps.places.PlaceResult): SelectedPlace | null
   };
 }
 
-export function DealerLocationAutocomplete({
-  value,
+type PlacesAutocompleteBinderProps = {
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  onValueChange: (value: string) => void;
+  onPlaceSelect: (place: SelectedPlace | null) => void;
+};
+
+function PlacesAutocompleteBinder({
+  inputRef,
   onValueChange,
   onPlaceSelect,
-  placeholder = "City, suburb, or address in Australia",
-  id = "dealer-location-search",
-}: DealerLocationAutocompleteProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+}: PlacesAutocompleteBinderProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-
-  const { isLoaded } = useJsApiLoader({
-    id: "awdd-google-maps-script",
-    googleMapsApiKey: apiKey,
-    libraries,
-  });
+  const { isLoaded } = useGoogleMapsLoader();
 
   useEffect(() => {
     if (!isLoaded || !inputRef.current || !apiKey) return;
@@ -83,21 +80,44 @@ export function DealerLocationAutocomplete({
     return () => {
       google.maps.event.removeListener(listener);
     };
-  }, [apiKey, isLoaded, onPlaceSelect, onValueChange]);
+  }, [apiKey, inputRef, isLoaded, onPlaceSelect, onValueChange]);
+
+  return null;
+}
+
+export function DealerLocationAutocomplete({
+  value,
+  onValueChange,
+  onPlaceSelect,
+  placeholder = "City, suburb, or address in Australia",
+  id = "dealer-location-search",
+}: DealerLocationAutocompleteProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [mapsEnabled, setMapsEnabled] = useState(false);
 
   return (
-    <input
-      ref={inputRef}
-      id={id}
-      type="text"
-      value={value}
-      onChange={(event) => {
-        onValueChange(event.target.value);
-        onPlaceSelect(null);
-      }}
-      placeholder={placeholder}
-      autoComplete="off"
-      className="w-full rounded-xl border border-stone-200 bg-stone-50/80 px-3 py-2.5 text-sm text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-accent/40 focus:bg-white focus:ring-2 focus:ring-accent/15"
-    />
+    <>
+      <input
+        ref={inputRef}
+        id={id}
+        type="text"
+        value={value}
+        onFocus={() => setMapsEnabled(true)}
+        onChange={(event) => {
+          onValueChange(event.target.value);
+          onPlaceSelect(null);
+        }}
+        placeholder={placeholder}
+        autoComplete="off"
+        className="w-full rounded-xl border border-stone-200 bg-stone-50/80 px-3 py-2.5 text-sm text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-accent/40 focus:bg-white focus:ring-2 focus:ring-accent/15"
+      />
+      {mapsEnabled ? (
+        <PlacesAutocompleteBinder
+          inputRef={inputRef}
+          onValueChange={onValueChange}
+          onPlaceSelect={onPlaceSelect}
+        />
+      ) : null}
+    </>
   );
 }

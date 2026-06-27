@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 import { StarRating } from "@/components/star-rating";
 import type { Dealer } from "@/types/dealer";
@@ -9,7 +12,12 @@ type DealerMapPopupProps = {
 
 export function DealerMapPopup({ dealer }: DealerMapPopupProps) {
   return (
-    <div className="w-[min(260px,72vw)] overflow-hidden font-sans">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      className="w-[min(260px,72vw)] overflow-hidden font-sans"
+    >
       <div className="border-b border-stone-100 pb-3">
         <p className="font-display text-[15px] font-semibold leading-snug text-stone-900">{dealer.name}</p>
         <p className="mt-0.5 text-xs text-stone-500">
@@ -48,6 +56,6 @@ export function DealerMapPopup({ dealer }: DealerMapPopupProps) {
       >
         View profile
       </Link>
-    </div>
+    </motion.div>
   );
 }

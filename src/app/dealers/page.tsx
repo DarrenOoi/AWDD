@@ -1,9 +1,18 @@
+import Link from "next/link";
 import { Suspense } from "react";
 
 import { DealersDirectoryClient } from "@/components/dealers-directory-client";
 import { dealers } from "@/data/dealers";
+import { createPageMetadata } from "@/lib/metadata";
 
-export default async function DealersPage() {
+export const metadata = createPageMetadata({
+  title: "Find watch dealers in Australia",
+  description:
+    "Search Australian watch dealers by city, suburb, brand, or name. Filter the directory and explore dealers on the map.",
+  path: "/dealers",
+});
+
+export default function DealersPage() {
   return (
     <div className="space-y-6">
       <header className="border-b border-stone-200/80 pb-6">
@@ -16,6 +25,18 @@ export default async function DealersPage() {
           map.
         </p>
       </header>
+
+      <nav aria-label="All watch dealers" className="sr-only">
+        <ul>
+          {dealers.map((dealer) => (
+            <li key={dealer.id}>
+              <Link href={`/dealers/${dealer.id}`}>
+                {dealer.name} — watch dealer in {dealer.city}, {dealer.state}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
       <Suspense
         fallback={

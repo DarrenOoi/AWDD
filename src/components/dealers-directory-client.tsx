@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
@@ -9,6 +10,7 @@ import {
   type SelectedPlace,
 } from "@/components/dealer-location-autocomplete";
 import { DealerResultRow } from "@/components/dealer-result-row";
+import { revealTransition } from "@/components/motion/motion-config";
 import { filterDealers } from "@/lib/dealer-search";
 import type { Dealer } from "@/types/dealer";
 
@@ -47,6 +49,7 @@ export function DealersDirectoryClient({ dealers }: DealersDirectoryClientProps)
   const searchParams = useSearchParams();
 
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>("list");
+  const [summaryPulse, setSummaryPulse] = useState(false);
 
   const queryFilter = searchParams.get("q") ?? searchParams.get("city") ?? "";
   const brandFilter = searchParams.get("brand") ?? "";
@@ -76,6 +79,8 @@ export function DealersDirectoryClient({ dealers }: DealersDirectoryClientProps)
       params.delete("type");
       const query = params.toString();
       router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+      setSummaryPulse(true);
+      window.setTimeout(() => setSummaryPulse(false), 600);
     },
     [pathname, router, searchParams],
   );
@@ -105,6 +110,38 @@ export function DealersDirectoryClient({ dealers }: DealersDirectoryClientProps)
       near: place ? { lat: place.lat, lng: place.lng } : null,
     });
   };
+
+  const listKey = `${queryFilter}|${brandFilter}|${near?.lat ?? ""}|${near?.lng ?? ""}`;
+
+  const dealerList = (
+    <AnimatePresence mode="popLayout" initial={false}>
+      {filteredDealers.length > 0 ? (
+        filteredDealers.map((dealer) => (
+          <motion.div
+            key={`${listKey}-${dealer.id}`}
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={revealTransition}
+          >
+            <DealerResultRow dealer={dealer} />
+          </motion.div>
+        ))
+      ) : (
+        <motion.p
+          key="empty"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={revealTransition}
+          className="rounded-xl border border-dashed border-stone-300 bg-white/70 p-10 text-center text-stone-500"
+        >
+          No dealers match. Try a suburb from the suggestions, or a shorter search term.
+        </motion.p>
+      )}
+    </AnimatePresence>
+  );
 
   return (
     <section className="space-y-4">
@@ -141,30 +178,37 @@ export function DealersDirectoryClient({ dealers }: DealersDirectoryClientProps)
               />
             </label>
           </div>
-          <p className="text-sm text-stone-600 lg:max-w-xs lg:text-right">{resultSummary}</p>
+          <motion.p
+            animate={summaryPulse ? { color: "#006039", scale: 1.02 } : { color: "#57534e", scale: 1 }}
+            transition={{ duration: 0.35 }}
+            className="text-sm lg:max-w-xs lg:text-right"
+          >
+            {resultSummary}
+          </motion.p>
         </div>
       </div>
 
       <div className="lg:hidden">
         <div className="flex rounded-xl border border-stone-200 bg-stone-100/80 p-1">
-          <button
-            type="button"
-            onClick={() => setMobilePanel("list")}
-            className={`flex-1 rounded-lg py-2 text-sm font-semibold ${
-              mobilePanel === "list" ? "bg-white text-stone-900 shadow-sm" : "text-stone-600"
-            }`}
-          >
-            List
-          </button>
-          <button
-            type="button"
-            onClick={() => setMobilePanel("map")}
-            className={`flex-1 rounded-lg py-2 text-sm font-semibold ${
-              mobilePanel === "map" ? "bg-white text-stone-900 shadow-sm" : "text-stone-600"
-            }`}
-          >
-            Map
-          </button>
+          {(["list", "map"] as const).map((panel) => (
+            <button
+              key={panel}
+              type="button"
+              onClick={() => setMobilePanel(panel)}
+              className={`relative flex-1 rounded-lg py-2 text-sm font-semibold capitalize ${
+                mobilePanel === panel ? "text-stone-900" : "text-stone-600"
+              }`}
+            >
+              {mobilePanel === panel ? (
+                <motion.span
+                  layoutId="mobile-panel-tab"
+                  className="absolute inset-0 rounded-lg bg-white shadow-sm"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+              ) : null}
+              <span className="relative">{panel}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -174,14 +218,26 @@ export function DealersDirectoryClient({ dealers }: DealersDirectoryClientProps)
             mobilePanel === "map" ? "hidden lg:block" : ""
           }`}
         >
-          {filteredDealers.length > 0 ? (
-            filteredDealers.map((dealer) => <DealerResultRow key={dealer.id} dealer={dealer} />)
-          ) : (
-            <p className="rounded-xl border border-dashed border-stone-300 bg-white/70 p-10 text-center text-stone-500">
-              No dealers match. Try a suburb from the suggestions, or a shorter search term.
-            </p>
-          )}
+          {dealerList}
         </div>
+
+        <AnimatePresence mode="wait">
+          {mobilePanel === "map" ? (
+            <motion.div
+              key="map-panel-mobile"
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 16 }}
+              transition={revealTransition}
+              className="min-w-0 flex-1 lg:hidden"
+            >
+              <DealerMap dealers={filteredDealers} heightClassName="h-[min(420px,55vh)]" />
+              <p className="mt-2 text-center text-xs text-stone-500">
+                Map updates as you filter. Tap a pin for a quick preview.
+              </p>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
 
         <div
           className={`min-w-0 flex-1 lg:sticky lg:top-24 lg:max-w-[min(48%,720px)] ${

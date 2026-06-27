@@ -1,9 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
+import { Cormorant_Garamond, Geist } from "next/font/google";
 
+import { JsonLd } from "@/components/json-ld";
+import { MotionProvider } from "@/components/motion/motion-config";
+import { PageTransition } from "@/components/page-transition";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { watchCommunities } from "@/data/watch-communities";
+import { websiteJsonLd } from "@/lib/structured-data";
+import { siteConfig } from "@/lib/site";
 
 import "./globals.css";
 
@@ -12,20 +16,37 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 const displaySerif = Cormorant_Garamond({
   variable: "--font-cormorant",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "Australian Watch Dealer Directory",
-  description: "Discover trusted watch dealers across Australia.",
+  metadataBase: new URL(siteConfig.url),
+  title: {
+    default: siteConfig.name,
+    template: `%s | ${siteConfig.shortName}`,
+  },
+  description: siteConfig.description,
+  robots: { index: true, follow: true },
+  openGraph: {
+    type: "website",
+    locale: siteConfig.locale,
+    siteName: siteConfig.name,
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [{ url: siteConfig.defaultOgImage, alt: siteConfig.name }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [siteConfig.defaultOgImage],
+  },
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export const viewport: Viewport = {
@@ -39,52 +60,18 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${displaySerif.variable} h-full antialiased [color-scheme:light]`}
+      lang="en-AU"
+      className={`${geistSans.variable} ${displaySerif.variable} h-full antialiased [color-scheme:light]`}
     >
-      <body className="flex min-h-full flex-col bg-[var(--bg-page)] text-stone-900">
-        <SiteHeader />
-        <main className="mx-auto w-full max-w-[min(90rem,100%)] flex-1 px-4 py-8 sm:px-6 lg:px-8">
-          {children}
-        </main>
-        <footer className="border-t border-stone-200/80 bg-[var(--bg-elevated)]">
-          <div className="mx-auto grid w-full max-w-[min(90rem,100%)] gap-8 px-4 py-10 sm:px-6 lg:grid-cols-3 lg:px-8">
-            <div>
-              <p className="font-display text-2xl font-semibold text-stone-900">AWDD</p>
-              <p className="mt-2 text-sm text-stone-600">Australian watch dealers and enthusiast communities.</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">Quick links</p>
-              <div className="mt-3 space-y-2 text-sm text-stone-700">
-                <Link href="/" className="block hover:text-stone-900">
-                  Home
-                </Link>
-                <Link href="/dealers" className="block hover:text-stone-900">
-                  Dealers
-                </Link>
-                <Link href="/contact" className="block hover:text-stone-900">
-                  Contact us
-                </Link>
-              </div>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">Facebook communities</p>
-              <div className="mt-3 space-y-2 text-sm text-stone-700">
-                {watchCommunities.slice(0, 3).map((community) => (
-                  <a
-                    key={community.name}
-                    href={community.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block hover:text-stone-900"
-                  >
-                    {community.name}
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-        </footer>
+      <body className="flex min-h-full flex-col overflow-x-clip bg-[var(--bg-page)] text-stone-900">
+        <JsonLd data={websiteJsonLd()} />
+        <MotionProvider>
+          <SiteHeader />
+          <main className="mx-auto w-full max-w-[min(90rem,100%)] flex-1 px-4 py-8 sm:px-6 lg:px-8">
+            <PageTransition>{children}</PageTransition>
+          </main>
+          <SiteFooter />
+        </MotionProvider>
       </body>
     </html>
   );

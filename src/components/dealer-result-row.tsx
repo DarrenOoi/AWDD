@@ -13,7 +13,13 @@ export function DealerResultRow({ dealer }: DealerResultRowProps) {
   return (
     <article className="group flex gap-4 rounded-xl border border-stone-200/80 bg-white p-4 shadow-sm transition hover:border-stone-300 hover:shadow-md">
       <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-stone-100 ring-1 ring-stone-200/60">
-        <Image src={dealer.heroImage} alt={`${dealer.name} photo`} fill className="object-cover" />
+        <Image
+          src={dealer.heroImage}
+          alt={`${dealer.name} photo`}
+          fill
+          sizes="96px"
+          className="object-cover"
+        />
         {dealer.featured ? (
           <FeaturedBadge size="sm" className="absolute left-1.5 top-1.5" />
         ) : null}

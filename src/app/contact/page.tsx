@@ -1,6 +1,14 @@
 import Image from "next/image";
 
 import { ContactForm } from "@/components/contact-form";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata({
+  title: "Contact us",
+  description:
+    "Get in touch with AWDD for dealer listing updates, corrections, or to add your watch community.",
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (
@@ -10,6 +18,7 @@ export default function ContactPage() {
           src="/images/heroes/contact-hero.webp"
           alt="Watch collectors discussing in a meetup"
           fill
+          sizes="100vw"
           className="object-cover opacity-25"
         />
         <div className="relative">

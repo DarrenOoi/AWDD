@@ -131,6 +131,6 @@ export const dealers: Dealer[] = [
     googleRating: 5.0,
     reviewCount: 571,
     featured: true,
-    heroImage: "/images/heroes/watchcraze.jpg",
+    heroImage: "/images/heroes/watchcraze.webp",
   },
 ];
