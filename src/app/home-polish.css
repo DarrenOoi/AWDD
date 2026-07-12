@@ -1,0 +1,100 @@
+/* Home page polish — CSS-only where possible; scoped to avoid sitewide cost */
+
+@keyframes home-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes home-ken-burns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+
+.home-page .hero-ken-burns {
+  animation: home-ken-burns 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.home-page .hero-stagger {
+  animation: home-fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.home-page .hero-stagger-1 {
+  animation-delay: 0.05s;
+}
+.home-page .hero-stagger-2 {
+  animation-delay: 0.15s;
+}
+.home-page .hero-stagger-3 {
+  animation-delay: 0.28s;
+}
+.home-page .hero-stagger-4 {
+  animation-delay: 0.4s;
+}
+
+.home-page .cta-hover {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.2s ease;
+}
+
+.home-page .cta-hover:hover {
+  transform: scale(1.02);
+}
+
+.home-page .cta-hover:active {
+  transform: scale(0.98);
+}
+
+@supports (animation-timeline: view()) {
+  .home-page .scroll-reveal {
+    animation: home-fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-timeline: view();
+    animation-range: entry 5% cover 28%;
+  }
+
+  .home-page .scroll-reveal-stagger {
+    animation: home-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-timeline: view();
+    animation-range: entry 8% cover 32%;
+    animation-delay: calc(var(--stagger, 0) * 80ms);
+  }
+}
+
+.home-page .community-card {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.home-page .community-card:hover {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page .hero-ken-burns,
+  .home-page .hero-stagger,
+  .home-page .scroll-reveal,
+  .home-page .scroll-reveal-stagger {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .home-page .cta-hover:hover,
+  .home-page .cta-hover:active,
+  .home-page .community-card:hover {
+    transform: none;
+  }
+}

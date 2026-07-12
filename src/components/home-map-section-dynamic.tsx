@@ -1,9 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useInView } from "framer-motion";
-import { useRef } from "react";
 
+import { MapPlaceholder } from "@/components/deferred-dealer-map";
+import { useInView } from "@/hooks/use-in-view";
 import type { Dealer } from "@/types/dealer";
 
 const HomeMapSection = dynamic(
@@ -11,9 +11,7 @@ const HomeMapSection = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="rounded-3xl border border-dashed border-stone-300 bg-stone-50 p-12 text-center text-sm text-stone-500">
-        Loading map…
-      </div>
+      <MapPlaceholder heightClassName="h-[min(440px,62vh)] sm:h-[480px]" wrapperClassName="rounded-3xl" />
     ),
   },
 );
@@ -23,17 +21,14 @@ type HomeMapSectionDynamicProps = {
 };
 
 export function HomeMapSectionDynamic({ dealers }: HomeMapSectionDynamicProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "200px 0px" });
+  const { ref, inView } = useInView({ rootMargin: "320px 0px" });
 
   return (
-    <div ref={ref} className="min-h-[12rem]">
+    <div ref={ref} className="min-h-[min(440px,62vh)] sm:min-h-[480px]">
       {inView ? (
         <HomeMapSection dealers={dealers} />
       ) : (
-        <div className="rounded-3xl border border-dashed border-stone-300 bg-stone-50 p-12 text-center text-sm text-stone-500">
-          Loading map…
-        </div>
+        <MapPlaceholder heightClassName="h-[min(440px,62vh)] sm:h-[480px]" wrapperClassName="rounded-3xl" />
       )}
     </div>
   );

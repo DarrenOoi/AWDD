@@ -5,5 +5,5 @@
   <circle cx="880" cy="250" r="220" fill="#D6D3D1" fill-opacity="0.2"/>
   <circle cx="1280" cy="330" r="170" fill="#A8A29E" fill-opacity="0.26"/>
   <rect x="260" y="560" width="1080" height="170" rx="20" fill="#FAF9F7" fill-opacity="0.16"/>
-  <text x="800" y="660" text-anchor="middle" font-family="Arial, sans-serif" font-size="68" fill="#F5F5F4" fill-opacity="0.9">Contact the AWDD Team</text>
+  <text x="800" y="660" text-anchor="middle" font-family="Arial, sans-serif" font-size="68" fill="#F5F5F4" fill-opacity="0.9">Contact the AWG Team</text>
 </svg>

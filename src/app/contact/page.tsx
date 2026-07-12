@@ -6,7 +6,7 @@ import { createPageMetadata } from "@/lib/metadata";
 export const metadata = createPageMetadata({
   title: "Contact us",
   description:
-    "Get in touch with AWDD for dealer listing updates, corrections, or to add your watch community.",
+    "Get in touch with Australian Watch Guide for dealer listing updates, corrections, or to add your watch community.",
   path: "/contact",
 });
 

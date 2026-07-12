@@ -3,7 +3,7 @@
 import { useJsApiLoader } from "@react-google-maps/api";
 
 /** Shared loader config — all useJsApiLoader calls must use the same id and libraries. */
-export const GOOGLE_MAPS_SCRIPT_ID = "awdd-google-maps-script";
+export const GOOGLE_MAPS_SCRIPT_ID = "awg-google-maps-script";
 export const GOOGLE_MAPS_LIBRARIES = ["places", "marker"] as const;
 /** Stable array reference — do not spread into useJsApiLoader or LoadScript reloads. */
 export const GOOGLE_MAPS_LOADER_LIBRARIES: ("marker" | "places")[] = [

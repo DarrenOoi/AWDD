@@ -17,7 +17,7 @@ export function websiteJsonLd() {
       {
         "@type": "Organization",
         "@id": `${absoluteUrl("/")}#organization`,
-        name: siteConfig.shortName,
+        name: siteConfig.name,
         url: absoluteUrl("/"),
         description: siteConfig.description,
       },

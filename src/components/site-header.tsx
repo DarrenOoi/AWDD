@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
+import { siteConfig } from "@/lib/site";
+
 const navLinks = [
-  { href: "/dealers", label: "Browse dealers", shortLabel: "Dealers" },
+  { href: "/dealers", label: "Dealers", shortLabel: "Dealers" },
+  { href: "/communities", label: "Communities", shortLabel: "Community" },
   { href: "/contact", label: "Contact", shortLabel: "Contact" },
 ] as const;
 
@@ -22,22 +24,18 @@ export function SiteHeader() {
   }, []);
 
   return (
-    <motion.header
-      animate={{
-        paddingTop: scrolled ? 10 : 14,
-        paddingBottom: scrolled ? 10 : 14,
-        boxShadow: scrolled ? "0 1px 0 rgba(28,25,23,0.06), 0 4px 16px rgba(28,25,23,0.04)" : "0 0 0 rgba(0,0,0,0)",
-      }}
-      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-      className="sticky top-0 z-50 border-b border-stone-200/80 bg-[var(--bg-elevated)]/95 backdrop-blur-md"
+    <header
+      className={`sticky top-0 z-50 border-b border-stone-200/80 bg-[var(--bg-elevated)]/95 py-3.5 backdrop-blur-md transition-shadow duration-200 ${
+        scrolled ? "shadow-[0_1px_0_rgba(28,25,23,0.06),0_4px_16px_rgba(28,25,23,0.04)]" : ""
+      }`}
     >
       <div className="mx-auto flex w-full max-w-[min(90rem,100%)] flex-nowrap items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6 lg:px-8">
         <Link href="/" className="group min-w-0 flex-1 sm:flex-initial">
           <span className="font-display text-lg font-semibold tracking-tight text-stone-900 sm:text-xl">
-            AWDD
+            {siteConfig.shortName}
           </span>
           <span className="mt-0.5 hidden truncate text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500 sm:block">
-            Australian Watch Dealer Directory
+            {siteConfig.name}
           </span>
         </Link>
 
@@ -54,10 +52,9 @@ export function SiteHeader() {
                 <span className="sm:hidden">{link.shortLabel}</span>
                 <span className="hidden sm:inline">{link.label}</span>
                 {isActive ? (
-                  <motion.span
-                    layoutId="nav-underline"
+                  <span
+                    aria-hidden
                     className="absolute inset-x-2.5 bottom-1 h-0.5 rounded-full bg-accent sm:inset-x-4"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 ) : null}
               </Link>
@@ -65,6 +62,6 @@ export function SiteHeader() {
           })}
         </nav>
       </div>
-    </motion.header>
+    </header>
   );
 }

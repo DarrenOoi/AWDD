@@ -1,36 +1,22 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  DealerLocationAutocomplete,
-  type SelectedPlace,
-} from "@/components/dealer-location-autocomplete";
+import { DeferredDealerMap } from "@/components/deferred-dealer-map";
+import { DealerSearchInput } from "@/components/dealer-search-input";
+import type { SelectedPlace } from "@/components/dealer-search-input";
 import { DealerResultRow } from "@/components/dealer-result-row";
-import { revealTransition } from "@/components/motion/motion-config";
-import { filterDealers } from "@/lib/dealer-search";
+import { describeDealerFilters, filterDealers, getDealerCities } from "@/lib/dealer-search";
 import type { Dealer } from "@/types/dealer";
-
-const DealerMap = dynamic(
-  () => import("@/components/dealer-map").then((mod) => mod.DealerMap),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-[min(420px,55vh)] items-center justify-center rounded-2xl border border-dashed border-stone-300 bg-stone-50 text-sm text-stone-500 lg:h-[calc(100vh-8.5rem)] lg:min-h-[420px]">
-        Loading map…
-      </div>
-    ),
-  },
-);
 
 type DealersDirectoryClientProps = {
   dealers: Dealer[];
 };
 
 type MobilePanel = "list" | "map";
+
+const MAP_HEIGHT = "h-[min(420px,55vh)] lg:h-[calc(100vh-8.5rem)] lg:min-h-[420px]";
 
 function parseNear(
   lat: string | null,
@@ -43,32 +29,42 @@ function parseNear(
   return { lat: latNum, lng: lngNum };
 }
 
+function useDesktopMapEnabled() {
+  const [desktopMapEnabled, setDesktopMapEnabled] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const update = () => setDesktopMapEnabled(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  return desktopMapEnabled;
+}
+
 export function DealersDirectoryClient({ dealers }: DealersDirectoryClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const desktopMapEnabled = useDesktopMapEnabled();
 
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>("list");
-  const [summaryPulse, setSummaryPulse] = useState(false);
 
   const queryFilter = searchParams.get("q") ?? searchParams.get("city") ?? "";
-  const brandFilter = searchParams.get("brand") ?? "";
   const near = parseNear(searchParams.get("lat"), searchParams.get("lng"));
+  const hasActiveFilter = Boolean(queryFilter.trim() || near);
+
+  const cityOptions = useMemo(() => getDealerCities(dealers), [dealers]);
 
   const syncUrl = useCallback(
-    (next: {
-      q: string;
-      brand: string;
-      near: { lat: number; lng: number } | null;
-    }) => {
+    (next: { q: string; near: { lat: number; lng: number } | null }) => {
       const params = new URLSearchParams(searchParams.toString());
       if (next.q.trim()) params.set("q", next.q.trim());
       else {
         params.delete("q");
         params.delete("city");
       }
-      if (next.brand.trim()) params.set("brand", next.brand.trim());
-      else params.delete("brand");
       if (next.near) {
         params.set("lat", String(next.near.lat));
         params.set("lng", String(next.near.lng));
@@ -76,115 +72,102 @@ export function DealersDirectoryClient({ dealers }: DealersDirectoryClientProps)
         params.delete("lat");
         params.delete("lng");
       }
+      params.delete("brand");
       params.delete("type");
       const query = params.toString();
       router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-      setSummaryPulse(true);
-      window.setTimeout(() => setSummaryPulse(false), 600);
     },
     [pathname, router, searchParams],
   );
 
   const filteredDealers = useMemo(() => {
     return filterDealers(dealers, {
-      query: queryFilter,
-      brand: brandFilter,
+      query: near ? undefined : queryFilter,
       near: near ? { ...near, radiusKm: 80 } : null,
     });
-  }, [brandFilter, dealers, near, queryFilter]);
+  }, [dealers, near, queryFilter]);
 
-  const resultSummary = useMemo(() => {
-    const q = queryFilter.trim();
-    const brand = brandFilter.trim();
-    if (!q && !brand && !near) return `${filteredDealers.length} dealers across Australia`;
-    const parts: string[] = [];
-    if (brand) parts.push(brand);
-    if (q) parts.push(near ? `near ${q}` : `matching “${q}”`);
-    return `${filteredDealers.length} results ${parts.join(" · ")}`.trim();
-  }, [brandFilter, filteredDealers.length, near, queryFilter]);
+  const resultSummary = useMemo(
+    () =>
+      describeDealerFilters(dealers.length, filteredDealers.length, {
+        query: queryFilter,
+        near,
+      }),
+    [dealers.length, filteredDealers.length, near, queryFilter],
+  );
 
   const handlePlaceSelect = (place: SelectedPlace | null) => {
-    syncUrl({
-      q: place?.city ?? queryFilter,
-      brand: brandFilter,
-      near: place ? { lat: place.lat, lng: place.lng } : null,
-    });
+    if (place) {
+      syncUrl({
+        q: place.city ?? place.label,
+        near: { lat: place.lat, lng: place.lng },
+      });
+      return;
+    }
+    syncUrl({ q: queryFilter, near: null });
   };
 
-  const listKey = `${queryFilter}|${brandFilter}|${near?.lat ?? ""}|${near?.lng ?? ""}`;
+  const clearFilters = () => syncUrl({ q: "", near: null });
 
-  const dealerList = (
-    <AnimatePresence mode="popLayout" initial={false}>
-      {filteredDealers.length > 0 ? (
-        filteredDealers.map((dealer) => (
-          <motion.div
-            key={`${listKey}-${dealer.id}`}
-            layout
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={revealTransition}
-          >
-            <DealerResultRow dealer={dealer} />
-          </motion.div>
-        ))
-      ) : (
-        <motion.p
-          key="empty"
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={revealTransition}
-          className="rounded-xl border border-dashed border-stone-300 bg-white/70 p-10 text-center text-stone-500"
-        >
-          No dealers match. Try a suburb from the suggestions, or a shorter search term.
-        </motion.p>
-      )}
-    </AnimatePresence>
-  );
+  const selectCity = (city: string) => syncUrl({ q: city, near: null });
+
+  const mapEnabled = desktopMapEnabled || mobilePanel === "map";
 
   return (
     <section className="space-y-4">
       <div className="rounded-2xl border border-stone-200/80 bg-[var(--bg-elevated)] p-4 shadow-sm sm:p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
-          <div className="grid flex-1 gap-4 sm:grid-cols-2">
-            <label className="space-y-1.5">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+            <label className="min-w-0 flex-1 space-y-1.5">
               <span className="text-xs font-semibold uppercase tracking-wide text-stone-500">
-                Location
+                Search
               </span>
-              <DealerLocationAutocomplete
+              <DealerSearchInput
+                dealers={dealers}
                 value={queryFilter}
                 onValueChange={(value) => {
-                  syncUrl({ q: value, brand: brandFilter, near });
+                  syncUrl({ q: value, near: null });
                 }}
                 onPlaceSelect={handlePlaceSelect}
-                placeholder="City, suburb, or address"
-              />
-              <p className="text-xs text-stone-500">
-                Pick a suggestion for nearby results, or type to match name, city, or address.
-              </p>
-            </label>
-            <label className="space-y-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wide text-stone-500">
-                Brand
-              </span>
-              <input
-                value={brandFilter}
-                onChange={(event) => {
-                  syncUrl({ q: queryFilter, brand: event.target.value, near });
-                }}
-                placeholder="Rolex, Omega…"
-                className="w-full rounded-xl border border-stone-200 bg-stone-50/80 px-3 py-2.5 text-sm text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-accent/40 focus:bg-white focus:ring-2 focus:ring-accent/15"
+                placeholder="Dealer name, city, or suburb"
               />
             </label>
+            {hasActiveFilter ? (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="shrink-0 self-end rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50 sm:mt-6 sm:self-auto"
+              >
+                Clear
+              </button>
+            ) : null}
           </div>
-          <motion.p
-            animate={summaryPulse ? { color: "#006039", scale: 1.02 } : { color: "#57534e", scale: 1 }}
-            transition={{ duration: 0.35 }}
-            className="text-sm lg:max-w-xs lg:text-right"
-          >
-            {resultSummary}
-          </motion.p>
+
+          <p className="text-xs text-stone-500">
+            Pick a dealer or city from suggestions, use Google for suburbs, or tap a city chip below.
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            {cityOptions.map((city) => {
+              const active = !near && queryFilter.toLowerCase() === city.toLowerCase();
+              return (
+                <button
+                  key={city}
+                  type="button"
+                  onClick={() => selectCity(city)}
+                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                    active
+                      ? "bg-accent text-accent-foreground shadow-sm"
+                      : "bg-stone-100 text-stone-700 ring-1 ring-stone-200/80 hover:bg-stone-200/80"
+                  }`}
+                >
+                  {city}
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="text-sm text-stone-600">{resultSummary}</p>
         </div>
       </div>
 
@@ -195,18 +178,13 @@ export function DealersDirectoryClient({ dealers }: DealersDirectoryClientProps)
               key={panel}
               type="button"
               onClick={() => setMobilePanel(panel)}
-              className={`relative flex-1 rounded-lg py-2 text-sm font-semibold capitalize ${
-                mobilePanel === panel ? "text-stone-900" : "text-stone-600"
+              className={`flex-1 rounded-lg py-2 text-sm font-semibold capitalize transition ${
+                mobilePanel === panel
+                  ? "bg-white text-stone-900 shadow-sm"
+                  : "text-stone-600 hover:text-stone-800"
               }`}
             >
-              {mobilePanel === panel ? (
-                <motion.span
-                  layoutId="mobile-panel-tab"
-                  className="absolute inset-0 rounded-lg bg-white shadow-sm"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                />
-              ) : null}
-              <span className="relative">{panel}</span>
+              {panel}
             </button>
           ))}
         </div>
@@ -218,38 +196,32 @@ export function DealersDirectoryClient({ dealers }: DealersDirectoryClientProps)
             mobilePanel === "map" ? "hidden lg:block" : ""
           }`}
         >
-          {dealerList}
+          {filteredDealers.length > 0 ? (
+            filteredDealers.map((dealer) => <DealerResultRow key={dealer.id} dealer={dealer} />)
+          ) : (
+            <p className="rounded-xl border border-dashed border-stone-300 bg-white/70 p-10 text-center text-stone-500">
+              No dealers found. Pick a city below, choose a location from the suggestions, or try a dealer
+              name.
+            </p>
+          )}
         </div>
-
-        <AnimatePresence mode="wait">
-          {mobilePanel === "map" ? (
-            <motion.div
-              key="map-panel-mobile"
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 16 }}
-              transition={revealTransition}
-              className="min-w-0 flex-1 lg:hidden"
-            >
-              <DealerMap dealers={filteredDealers} heightClassName="h-[min(420px,55vh)]" />
-              <p className="mt-2 text-center text-xs text-stone-500">
-                Map updates as you filter. Tap a pin for a quick preview.
-              </p>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
 
         <div
           className={`min-w-0 flex-1 lg:sticky lg:top-24 lg:max-w-[min(48%,720px)] ${
             mobilePanel === "list" ? "hidden lg:block" : ""
           }`}
         >
-          <DealerMap
-            dealers={filteredDealers}
-            heightClassName="h-[min(420px,55vh)] lg:h-[calc(100vh-8.5rem)] lg:min-h-[420px]"
-          />
+          <div className={MAP_HEIGHT}>
+            <DeferredDealerMap
+              dealers={filteredDealers}
+              heightClassName={MAP_HEIGHT}
+              enabled={mapEnabled}
+            />
+          </div>
           <p className="mt-2 text-center text-xs text-stone-500 lg:text-left">
-            Map updates as you filter. Tap a pin for a quick preview.
+            {near
+              ? "Showing dealers within ~80 km of your search. Zoom in to see individual pins."
+              : "Tap a pin for a quick preview. Clustered pins split when you zoom in."}
           </p>
         </div>
       </div>

@@ -1,8 +1,9 @@
 export const siteConfig = {
-  name: "Australian Watch Dealer Directory",
-  shortName: "AWDD",
+  name: "Australian Watch Guide",
+  shortName: "AWG",
+  tagline: "Trusted dealers, communities, and buying advice for the Australian watch scene.",
   description:
-    "Discover trusted watch dealers across Australia. Browse curated listings by city and brand, compare ratings, and find specialist storefronts.",
+    "Your guide to watches in Australia. Find trusted dealers, explore enthusiast communities, and get advice for buying with confidence.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   defaultOgImage: "/images/heroes/bezel.webp",
   locale: "en_AU",

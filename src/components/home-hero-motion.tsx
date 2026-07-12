@@ -55,8 +55,7 @@ export function HomeHeroMotion() {
           transition={revealTransition}
           className="mt-6 text-lg leading-relaxed text-stone-600"
         >
-          Curated listings — filter by city and brand on the directory, compare profiles, and explore dealers on
-          the map.
+          Your guide to buying watches in Australia — trusted dealers, communities, and advice.
         </motion.p>
         <motion.div variants={itemVariants} transition={revealTransition} className="mx-auto mt-10 flex justify-center">
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ ease: editorialEase }}>

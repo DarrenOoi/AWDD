@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Geist } from "next/font/google";
 
 import { JsonLd } from "@/components/json-ld";
-import { MotionProvider } from "@/components/motion/motion-config";
-import { PageTransition } from "@/components/page-transition";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { websiteJsonLd } from "@/lib/structured-data";
@@ -14,12 +12,15 @@ import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const displaySerif = Cormorant_Garamond({
   variable: "--font-cormorant",
   subsets: ["latin"],
   weight: ["600", "700"],
+  display: "optional",
+  adjustFontFallback: true,
 });
 
 export const metadata: Metadata = {
@@ -65,13 +66,11 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col overflow-x-clip bg-[var(--bg-page)] text-stone-900">
         <JsonLd data={websiteJsonLd()} />
-        <MotionProvider>
-          <SiteHeader />
-          <main className="mx-auto w-full max-w-[min(90rem,100%)] flex-1 px-4 py-8 sm:px-6 lg:px-8">
-            <PageTransition>{children}</PageTransition>
-          </main>
-          <SiteFooter />
-        </MotionProvider>
+        <SiteHeader />
+        <main className="mx-auto w-full max-w-[min(90rem,100%)] flex-1 px-4 py-8 sm:px-6 lg:px-8">
+          {children}
+        </main>
+        <SiteFooter />
       </body>
     </html>
   );

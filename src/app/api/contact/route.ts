@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
+import { siteConfig } from "@/lib/site";
+
 type ContactPayload = {
   name?: string;
   email?: string;
@@ -28,7 +30,7 @@ export async function POST(request: Request) {
 
   const resendKey = process.env.RESEND_API_KEY;
   const toEmail = process.env.CONTACT_TO_EMAIL;
-  const fromEmail = process.env.CONTACT_FROM_EMAIL ?? "AWDD Contact <onboarding@resend.dev>";
+  const fromEmail = process.env.CONTACT_FROM_EMAIL ?? `${siteConfig.shortName} Contact <onboarding@resend.dev>`;
 
   if (!resendKey || !toEmail) {
     if (process.env.NODE_ENV === "development") {
@@ -48,7 +50,7 @@ export async function POST(request: Request) {
     from: fromEmail,
     to: toEmail,
     replyTo: email,
-    subject: `[AWDD Contact] ${subject}`,
+    subject: `[${siteConfig.shortName} Contact] ${subject}`,
     text: [
       `Name: ${name}`,
       `Email: ${email}`,
